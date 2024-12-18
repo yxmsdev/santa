@@ -117,113 +117,115 @@ function App() {
 
   return (
     <div className="container">
-      <div className="stars">
-        {[...Array(100)].map((_, i) => (
-          <div 
-            key={i} 
-            className="star" 
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              width: `${Math.random() * 3}px`,
-              height: `${Math.random() * 3}px`,
-              opacity: Math.random() * 0.7
-            }} 
-          />
-        ))}
-      </div>
-      <a href="#" className="store-link">Store</a>
-      
-      {showConfetti && <Confetti 
-        width={window.innerWidth}
-        height={window.innerHeight}
-        recycle={false}
-        numberOfPieces={200}
-        colors={[
-          '#A50C00',  // Deep Red
-          '#0F8A5F',  // Christmas Green
-          '#FFD700',  // Gold
-          '#FFFFFF',  // White
-          '#146B3A',  // Dark Green
-          '#EA4630',  // Bright Red
-          '#F8B229'   // Golden Yellow
-        ]}
-      />}
-      
-      <div className="content-left">
-        <header>
-          <div className="logo-container">
-            <img src={logo} alt="The Wild Ones" className="main-logo" />
-          </div>
-          <h2 className="subtitle">CHRISTMAS GIVEAWAY</h2>
-        </header>
-
-        <p className="description">
-          Match the magical number 25, when you spin the Eko Wheel and<br />
-        stand a chance of winning an Eko Calendar. <br />
-         Merry Christmas!🎄</p>
-
-        <button 
-          className={`spin-button ${spinCount <= 0 ? 'disabled' : ''}`}
-          onClick={handleSpin}
-          disabled={isSpinning || spinCount <= 0}
-        >
-          {spinCount > 0 ? 'Spin' : 'No spins left'}
-        </button>
-        
-        {spinCount > 0 && (
-          <p className="spins-left">
-            {spinCount} spin{spinCount !== 1 ? 's' : ''} remaining
-          </p>
-        )}
-      </div>
-
-      {result && !isSpinning && (
-        <div className="result">
-          <p>You Got:</p>
-          <h2>{formatDoubleDigits(result)}</h2>
-        </div>
-      )}
-
-      <div className="wheel-container">
-        <div className="wheel-outer">
-          <div className="wheel-position">
+      <div className="main-content">
+        <div className="stars">
+          {[...Array(100)].map((_, i) => (
             <div 
-              className={`wheel-rotation ${isSpinning ? 'spinning' : ''}`}
+              key={i} 
+              className="star" 
               style={{
-                transform: `rotate(${rotation}deg)`
-              }}
-            >
-              <div className="wheel-ring">
-                <div className="ring-circle">
-                  {ringNumbers}
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                width: `${Math.random() * 3}px`,
+                height: `${Math.random() * 3}px`,
+                opacity: Math.random() * 0.7
+              }} 
+            />
+          ))}
+        </div>
+        <a href="#" className="store-link">Store</a>
+        
+        {showConfetti && <Confetti 
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={200}
+          colors={[
+            '#A50C00',  // Deep Red
+            '#0F8A5F',  // Christmas Green
+            '#FFD700',  // Gold
+            '#FFFFFF',  // White
+            '#146B3A',  // Dark Green
+            '#EA4630',  // Bright Red
+            '#F8B229'   // Golden Yellow
+          ]}
+        />}
+        
+        <div className="content-left">
+          <header>
+            <div className="logo-container">
+              <img src={logo} alt="The Wild Ones" className="main-logo" />
+            </div>
+            <h2 className="subtitle">CHRISTMAS GIVEAWAY</h2>
+          </header>
+
+          <p className="description">
+            Match the magical number 25, when you spin the Eko Wheel and<br />
+          stand a chance of winning an Eko Calendar. <br />
+           Merry Christmas!🎄</p>
+
+          <button 
+            className={`spin-button ${spinCount <= 0 ? 'disabled' : ''}`}
+            onClick={handleSpin}
+            disabled={isSpinning || spinCount <= 0}
+          >
+            {spinCount > 0 ? 'Spin' : 'No spins left'}
+          </button>
+          
+          {spinCount > 0 && (
+            <p className="spins-left">
+              {spinCount} spin{spinCount !== 1 ? 's' : ''} remaining
+            </p>
+          )}
+        </div>
+
+        {result && !isSpinning && (
+          <div className="result">
+            <p>You Got:</p>
+            <h2>{formatDoubleDigits(result)}</h2>
+          </div>
+        )}
+
+        <div className="wheel-container">
+          <div className="wheel-outer">
+            <div className="wheel-position">
+              <div 
+                className={`wheel-rotation ${isSpinning ? 'spinning' : ''}`}
+                style={{
+                  transform: `rotate(${rotation}deg)`
+                }}
+              >
+                <div className="wheel-ring">
+                  <div className="ring-circle">
+                    {ringNumbers}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="wheel-bridge">
-            <img src={bridge} alt="" className="bridge-svg" />
+            <div className="wheel-bridge">
+              <img src={bridge} alt="" className="bridge-svg" />
+            </div>
           </div>
         </div>
+
+        <UserModal 
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onSubmit={handleUserSubmit}
+        />
+
+        <CongratsModal 
+          isOpen={showCongratsModal}
+          onClose={() => setShowCongratsModal(false)}
+        />
+
+        <NoSpinsModal 
+          isOpen={showNoSpinsModal}
+          onClose={() => setShowNoSpinsModal(false)}
+        />
       </div>
-
-      <UserModal 
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleUserSubmit}
-      />
-
-      <CongratsModal 
-        isOpen={showCongratsModal}
-        onClose={() => setShowCongratsModal(false)}
-      />
-
-      <NoSpinsModal 
-        isOpen={showNoSpinsModal}
-        onClose={() => setShowNoSpinsModal(false)}
-      />
     </div>
   )
 }

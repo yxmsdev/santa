@@ -1,12 +1,11 @@
 .container {
   min-height: 100vh;
   height: 100vh;
-  padding: 2em 8em;
+  padding: 4em 8em;
   background-color: #A50C00;
   color: white;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   position: relative;
   overflow: hidden;
 }
@@ -46,9 +45,10 @@
 }
 
 .wheel-container {
-  position: absolute;
-  right: 8rem;
-  top: 45%;
+  position: fixed;
+  left: 50%;
+  right:auto;
+  top: 50%;
   transform: translateY(-50%);
   width: 628px;
   height: 628px;
@@ -139,7 +139,7 @@
 .store-link {
   position: absolute;
   top: 2em;
-  right: 8em;
+  right: 2em;
   color: white;
   text-decoration: none;
   font-size: 1rem;
@@ -605,16 +605,6 @@ input::-webkit-calendar-picker-indicator {
   margin-top: 2em;
 }
 
-/* Base responsive styles */
-@media (max-width: 1200px) {
-  .container {
-    padding: 2em 4em;
-  }
-
-  .store-link {
-    right: 4em;
-  }
-}
 
 @media (max-width: 992px) {
   .container {
