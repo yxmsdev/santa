@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import useSound from 'use-sound'
 import Confetti from 'react-confetti'
 import logo from '/src/assets/logo.png?url'
@@ -22,10 +22,28 @@ function App() {
   const [showCongratsModal, setShowCongratsModal] = useState(false)
   const [showNoSpinsModal, setShowNoSpinsModal] = useState(false)
   
-  const [playSpinSound] = useSound('/spin.mp3', { volume: 0.5 })
-  const [playVictorySound] = useSound('/vict.mp3', { volume: 0.5 })
-  const [playWinSound] = useSound('/win.mp3', { volume: 0.5 })
+  // Create ref for victory sound
+  const victorySound = useRef(new Audio('/vict.mp3'))
   
+  // Set up victory sound on mount
+  useEffect(() => {
+    victorySound.current.volume = 0.5
+    // Preload the sound
+    victorySound.current.load()
+  }, [])
+
+  // Initialize other sounds
+  const [playSpinSound] = useSound('/spin.mp3', { 
+    volume: 0.5,
+    html5: true,
+    pool: 1
+  })
+  const [playWinSound] = useSound('/win.mp3', { 
+    volume: 0.5,
+    html5: true,
+    pool: 1
+  })
+
   const handleUserSubmit = async (data) => {
     console.log('1. Starting handleUserSubmit with data:', data)
     
@@ -99,8 +117,11 @@ function App() {
       setIsSpinning(false)
       
       if (randomDay === 25) {
+        console.log('Hit 25! Playing victory sound...')
         setShowConfetti(true)
-        playVictorySound()
+        // Reset and play
+        victorySound.current.currentTime = 0
+        victorySound.current.play().catch(e => console.error('Victory sound error:', e))
         setShowCongratsModal(true)
       } else {
         playWinSound()
