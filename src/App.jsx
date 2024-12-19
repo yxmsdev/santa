@@ -23,6 +23,7 @@ function App() {
   const [showNoSpinsModal, setShowNoSpinsModal] = useState(false)
   
   const [playSpinSound] = useSound('/spin.mp3', { volume: 0.5 })
+  const [playVictorySound] = useSound('/vict.mp3', { volume: 0.5 })
   const [playWinSound] = useSound('/win.mp3', { volume: 0.5 })
   
   const handleUserSubmit = async (data) => {
@@ -96,13 +97,16 @@ function App() {
       setResult(randomDay)
       setLastResult(randomDay)
       setIsSpinning(false)
-      setShowConfetti(randomDay === 25)
-      playWinSound()
       
       if (randomDay === 25) {
+        setShowConfetti(true)
+        playVictorySound()
         setShowCongratsModal(true)
-      } else if (isLastSpin) {
-        setShowNoSpinsModal(true)
+      } else {
+        playWinSound()
+        if (isLastSpin) {
+          setShowNoSpinsModal(true)
+        }
       }
     }, 4000)
   }
