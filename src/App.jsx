@@ -8,7 +8,7 @@ import UserModal from './components/UserModal'
 import CongratsModal from './components/CongratsModal'
 import NoSpinsModal from './components/NoSpinsModal'
 import { db } from './firebase'
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, getDocs, query, where } from 'firebase/firestore'
 
 function App() {
   const [result, setResult] = useState(null)
@@ -45,84 +45,120 @@ function App() {
   })
 
   const handleUserSubmit = async (data) => {
-    console.log('1. Starting handleUserSubmit with data:', data)
-    
-    // First update local state and start the game
-    setUserInfo(data)
-    setShowModal(false)
-    handleSpin()
-    
-    // Then try to save to database (non-blocking)
     try {
-      const docRef = await addDoc(collection(db, 'participants'), {
+      // Check for existing email or phone
+      const emailQuery = await getDocs(
+        query(collection(db, 'participants'), where('email', '==', data.email))
+      )
+      const phoneQuery = await getDocs(
+        query(collection(db, 'participants'), where('phone', '==', data.phone))
+      )
+
+      if (!emailQuery.empty) {
+        alert('This email has already been used')
+        return
+      }
+
+      if (!phoneQuery.empty) {
+        alert('This phone number has already been used')
+        return
+      }
+
+      // If no duplicates, proceed with registration
+      const initialData = {
         ...data,
         timestamp: new Date(),
+        spinResult: null,
+        lastSpin: null,
+        isWinner: false,
+        spinsRemaining: 5
+      }
+      
+      const docRef = await addDoc(collection(db, 'participants'), initialData)
+      
+      setUserInfo({
+        ...data,
+        docId: docRef.id,
+        isWinner: false,
+        spinsRemaining: 5
       })
-      console.log('Data saved to Firestore:', docRef.id)
+      setShowModal(false)
+      
+      setTimeout(() => {
+        handleSpin(docRef.id)
+      }, 0)
+
     } catch (error) {
-      // Just log the error but don't block the game
-      console.error('Failed to save to database:', error)
+      console.error('Failed to save participant:', error)
     }
   }
 
-  const handleSpin = () => {
-    console.log('6. handleSpin called with:', {
-      userInfo,
-      isSpinning,
-      spinCount
-    })
-    
+  const handleSpin = async (docId = null) => {
     if (!userInfo) {
-      console.log('7. No userInfo, showing modal')
       setShowModal(true)
       return
     }
-    
-    if (isSpinning) {
-      console.log('8. Already spinning')
+    if (isSpinning) return
+    if (userInfo.isWinner) {
+      setShowCongratsModal(true)
       return
     }
-    
-    console.log('9. Starting spin animation')
+    if (spinCount <= 0) {
+      setShowNoSpinsModal(true)
+      return
+    }
+
     setIsSpinning(true)
     setShowConfetti(false)
-    const isLastSpin = spinCount === 1
-    setSpinCount(prev => prev - 1)
     playSpinSound()
     
-    const getNewNumber = () => {
-      const randomDay = Math.floor(Math.random() * 31) + 1
-      if (!lastResult) return randomDay
-      
-      const distance = Math.min(
-        Math.abs(randomDay - lastResult),
-        Math.abs(31 - Math.abs(randomDay - lastResult))
-      )
-      
-      return distance >= 8 ? randomDay : getNewNumber()
-    }
-    
+    // Get spin result
     const randomDay = getNewNumber()
+    const isWinner = randomDay === 25
+    const isLastSpin = spinCount === 1
     
+    // Calculate rotation
     const degreesPerNumber = 360 / 31
     const targetRotation = -(randomDay - 1) * degreesPerNumber
     const fullRotations = 5 * 360
     const newRotation = fullRotations + targetRotation
     
     setRotation(newRotation)
-    
-    setTimeout(() => {
+    setSpinCount(prev => prev - 1)
+
+    // Wait for animation
+    setTimeout(async () => {
+      // Update states first
       setResult(randomDay)
       setLastResult(randomDay)
       setIsSpinning(false)
-      
-      if (randomDay === 25) {
-        console.log('Hit 25! Playing victory sound...')
+
+      // Update database immediately with the spin result
+      if (userInfo.docId) {
+        try {
+          const participantRef = doc(db, 'participants', userInfo.docId)
+          const updateData = {
+            spinResult: randomDay,
+            lastSpin: spinCount === 1 ? randomDay : null,
+            isWinner: randomDay === 25,
+            spinsRemaining: spinCount - 1
+          }
+          
+          console.log('Attempting to update database with:', updateData)
+          await updateDoc(participantRef, updateData)
+          console.log('Successfully updated database')
+        } catch (error) {
+          console.error('Failed to update spin result:', error)
+        }
+      }
+
+      // Handle win/lose conditions after database update
+      if (isWinner) {
         setShowConfetti(true)
-        // Reset and play
         victorySound.current.currentTime = 0
         victorySound.current.play().catch(e => console.error('Victory sound error:', e))
         setShowCongratsModal(true)
+        setUserInfo(prev => ({ ...prev, isWinner: true }))
       } else {
         playWinSound()
         if (isLastSpin) {
@@ -161,6 +197,18 @@ function App() {
     if (number === 25) {
       setShowCongratsModal(true);
     }
+  }
+
+  const getNewNumber = () => {
+    const randomDay = Math.floor(Math.random() * 31) + 1
+    if (!lastResult) return randomDay
+    
+    const distance = Math.min(
+      Math.abs(randomDay - lastResult),
+      Math.abs(31 - Math.abs(randomDay - lastResult))
+    )
+    
+    return distance >= 8 ? randomDay : getNewNumber()
   }
 
   return (
