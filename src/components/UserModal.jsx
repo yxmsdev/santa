@@ -1,33 +1,33 @@
 import { useState } from 'react'
-import instagramLogo from '../assets/instagram.svg'
-import xLogo from '../assets/x.svg'
+import instagramLogo from '/src/assets/instagram.svg?url'
+import xLogo from '/src/assets/x.svg?url'
 
 const UserModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     name: '',
-    country: '',
-    username: '',
-    platform: 'instagram',
     email: '',
-    phone: ''
+    phone: '',
+    username: '',
+    platform: 'instagram'
   })
-
-  const countries = [
-    { code: 'AF', name: 'Afghanistan' },
-    { code: 'AL', name: 'Albania' },
-    // ... more countries
-    { code: 'NG', name: 'Nigeria' },
-    // ... more countries
-    { code: 'ZW', name: 'Zimbabwe' }
-  ].sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSubmit(formData)
-  }
+    
+    // Basic validation
+    if (!formData.name || !formData.email || !formData.phone || !formData.username) {
+      alert('Please fill in all fields')
+      return
+    }
 
-  const handlePlatformChange = (platform) => {
-    setFormData(prev => ({ ...prev, platform }))
+    // Email validation
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      alert('Please enter a valid email')
+      return
+    }
+
+    // Submit the form
+    onSubmit(formData)
   }
 
   if (!isOpen) return null
@@ -45,28 +45,33 @@ const UserModal = ({ isOpen, onClose, onSubmit }) => {
             <label>Name</label>
             <input
               type="text"
-              placeholder="Whats Your name?"
+              placeholder="What's your name?"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
             />
           </div>
 
           <div className="form-group">
-            <label>Country</label>
+            <label>Email</label>
             <input
-              type="text"
-              placeholder="Where Do you Live"
-              list="countries"
-              value={formData.country}
-              onChange={(e) => setFormData({...formData, country: e.target.value})}
+              type="email"
+              placeholder="email@example.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
-            <datalist id="countries">
-              {countries.map(country => (
-                <option key={country.code} value={country.name} />
-              ))}
-            </datalist>
+          </div>
+
+          <div className="form-group">
+            <label>Phone</label>
+            <input
+              type="tel"
+              placeholder="+234 000 0000 000"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              required
+            />
           </div>
 
           <div className="form-group">
@@ -76,14 +81,14 @@ const UserModal = ({ isOpen, onClose, onSubmit }) => {
                 <button
                   type="button"
                   className={`platform-btn ${formData.platform === 'instagram' ? 'active' : ''}`}
-                  onClick={() => handlePlatformChange('instagram')}
+                  onClick={() => setFormData({ ...formData, platform: 'instagram' })}
                 >
                   <img src={instagramLogo} alt="Instagram" />
                 </button>
                 <button
                   type="button"
                   className={`platform-btn ${formData.platform === 'x' ? 'active' : ''}`}
-                  onClick={() => handlePlatformChange('x')}
+                  onClick={() => setFormData({ ...formData, platform: 'x' })}
                 >
                   <img src={xLogo} alt="X" />
                 </button>
@@ -94,33 +99,11 @@ const UserModal = ({ isOpen, onClose, onSubmit }) => {
                   type="text"
                   placeholder="username"
                   value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
                 />
               </div>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="email@gmail.com"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Number</label>
-            <input
-              type="tel"
-              placeholder="+234 9137363855"
-              value={formData.phone}
-              onChange={(e) => setFormData({...formData, phone: e.target.value})}
-              required
-            />
           </div>
 
           <button type="submit" className="submit-button">

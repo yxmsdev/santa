@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import useSound from 'use-sound'
 import Confetti from 'react-confetti'
-import logo from './assets/logo.png'
-import bridge from './assets/bridge.svg'
+import logo from '/src/assets/logo.png?url'
+import bridge from '/src/assets/bridge.svg?url'
 import './App.css'
 import UserModal from './components/UserModal'
 import CongratsModal from './components/CongratsModal'
 import NoSpinsModal from './components/NoSpinsModal'
+import { db } from './firebase'
+import { collection, addDoc } from 'firebase/firestore'
 
 function App() {
   const [result, setResult] = useState(null)
@@ -23,19 +25,46 @@ function App() {
   const [playSpinSound] = useSound('/spin.mp3', { volume: 0.5 })
   const [playWinSound] = useSound('/win.mp3', { volume: 0.5 })
   
+  const handleUserSubmit = async (data) => {
+    console.log('1. Starting handleUserSubmit with data:', data)
+    
+    // First update local state and start the game
+    setUserInfo(data)
+    setShowModal(false)
+    handleSpin()
+    
+    // Then try to save to database (non-blocking)
+    try {
+      const docRef = await addDoc(collection(db, 'participants'), {
+        ...data,
+        timestamp: new Date(),
+      })
+      console.log('Data saved to Firestore:', docRef.id)
+    } catch (error) {
+      // Just log the error but don't block the game
+      console.error('Failed to save to database:', error)
+    }
+  }
+
   const handleSpin = () => {
+    console.log('6. handleSpin called with:', {
+      userInfo,
+      isSpinning,
+      spinCount
+    })
+    
     if (!userInfo) {
+      console.log('7. No userInfo, showing modal')
       setShowModal(true)
       return
     }
     
-    if (isSpinning) return
-    
-    if (spinCount <= 0) {
-      setShowNoSpinsModal(true)
+    if (isSpinning) {
+      console.log('8. Already spinning')
       return
     }
     
+    console.log('9. Starting spin animation')
     setIsSpinning(true)
     setShowConfetti(false)
     const isLastSpin = spinCount === 1
@@ -76,12 +105,6 @@ function App() {
         setShowNoSpinsModal(true)
       }
     }, 4000)
-  }
-
-  const handleUserSubmit = (data) => {
-    setUserInfo(data)
-    setShowModal(false)
-    handleSpin()
   }
 
   const formatDoubleDigits = (num) => {
